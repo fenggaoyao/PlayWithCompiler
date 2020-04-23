@@ -27,7 +27,7 @@ public class TypeChecker extends PlayScriptBaseListener {
         if (ctx.variableInitializer() != null){
             Variable variable = (Variable) at.symbolOfNode.get(ctx.variableDeclaratorId());
             Type type1 = variable.type;
-            Type type2 = at.typeOfNode.get(ctx.variableDeclaratorId());
+            Type type2 = at.typeOfNode.get(ctx.variableInitializer());
             checkAssign(type1,type2,ctx,ctx.variableDeclaratorId(),ctx.variableInitializer());
         }
     }
@@ -41,8 +41,11 @@ public class TypeChecker extends PlayScriptBaseListener {
 
             switch (ctx.bop.getType()) {
                 case PlayScriptParser.ADD:
-                    checkAddOperand(type1, ctx, ctx.expression(0));
-                    checkAddOperand(type2, ctx, ctx.expression(1));
+                    //字符串能够跟任何对象做 + 运算
+                    if (type1 != PrimitiveType.String && type2 != PrimitiveType.String){
+                        checkNumericOperand(type1, ctx, ctx.expression(0));
+                        checkNumericOperand(type2, ctx, ctx.expression(1));
+                    }
                     break;
                 case PlayScriptParser.SUB:
                 case PlayScriptParser.MUL:
@@ -82,7 +85,7 @@ public class TypeChecker extends PlayScriptBaseListener {
                 case PlayScriptParser.URSHIFT_ASSIGN:
                     if (PrimitiveType.isNumeric(type2)) {
                         if (!checkNumericAssign(type2, type1)) {
-                            at.log("can not assign " + ctx.expression(1).getText() + " of type " + type2 + "to " + ctx.expression(0) + " of type " + type1, ctx);
+                            at.log("can not assign " + ctx.expression(1).getText() + " of type " + type2 + " to " + ctx.expression(0) + " of type " + type1, ctx);
                         }
                     }
                     else{
@@ -94,21 +97,23 @@ public class TypeChecker extends PlayScriptBaseListener {
         }
 
 
+        //TODO 对各种一元运算做类型检查，比如NOT操作
+
     }
 
 
-    /**
-     * 检查加法的操作数。允许数值和字符串
-     *
-     * @param type
-     * @param exp
-     * @param operand
-     */
-    private void checkAddOperand(Type type, ExpressionContext exp, ExpressionContext operand) {
-        if (!(PrimitiveType.isNumeric(type) || type == PrimitiveType.String)) {
-            at.log("operand for add should be numeric or string: " + operand.getText(), exp);
-        }
-    }
+//    /**
+//     * 检查加法的操作数。允许数值和字符串
+//     *
+//     * @param type
+//     * @param exp
+//     * @param operand
+//     */
+//    private void checkAddOperand(Type type, ExpressionContext exp, ExpressionContext operand) {
+//        if (!(PrimitiveType.isNumeric(type) || type == PrimitiveType.String)) {
+//            at.log("operand for add should be numeric or string: " + operand.getText(), exp);
+//        }
+//    }
 
     /**
      * 检查类型是不是数值型的。
@@ -119,7 +124,7 @@ public class TypeChecker extends PlayScriptBaseListener {
      */
     private void checkNumericOperand(Type type, ExpressionContext exp, ExpressionContext operand) {
         if (!(PrimitiveType.isNumeric(type))) {
-            at.log("operand for should be numeric : " + operand.getText(), exp);
+            at.log("operand for arithmetic operation should be numeric : " + operand.getText(), exp);
         }
     }
 
@@ -132,7 +137,7 @@ public class TypeChecker extends PlayScriptBaseListener {
      */
     private void checkBooleanOperand(Type type, ExpressionContext exp, ExpressionContext operand) {
         if (!(type == PrimitiveType.Boolean)) {
-            at.log("operand for should be boolean : " + operand.getText(), exp);
+            at.log("operand for logical operation should be boolean : " + operand.getText(), exp);
         }
     }
 
@@ -147,7 +152,7 @@ public class TypeChecker extends PlayScriptBaseListener {
     private void checkAssign(Type type1, Type type2,  ParserRuleContext ctx, ParserRuleContext operand1, ParserRuleContext operand2){
         if (PrimitiveType.isNumeric(type2)) {
             if (!checkNumericAssign(type2, type1)) {
-                at.log("can not assign " + operand2.getText() + " of type " + type2 + "to " + operand1.getText() + " of type " + type1, ctx);
+                at.log("can not assign " + operand2.getText() + " of type " + type2 + " to " + operand1.getText() + " of type " + type1, ctx);
             }
         }
         else if (type2 instanceof Class){

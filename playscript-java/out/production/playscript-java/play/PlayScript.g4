@@ -72,9 +72,9 @@ memberDeclaration
     | fieldDeclaration
     // | constructorDeclaration
     // | genericConstructorDeclaration
-    // | interfaceDeclaration
+//     | interfaceDeclaration
     // | annotationTypeDeclaration
-    // | classDeclaration
+     | classDeclaration
     // | enumDeclaration
     ;
 
@@ -274,7 +274,7 @@ expression
     | expression bop='.'
       ( IDENTIFIER
       | functionCall
-    //   | THIS
+      | THIS
     //   | NEW nonWildcardTypeArguments? innerCreator
     //   | SUPER superSuffix
     //   | explicitGenericInvocation
@@ -313,7 +313,7 @@ expression
 primary
     : '(' expression ')'
     | THIS
-    // | SUPER
+    | SUPER
     | literal
     | IDENTIFIER
     // | typeTypeOrVoid '.' CLASS
@@ -340,6 +340,7 @@ primitiveType
     | LONG
     | FLOAT
     | DOUBLE
+    | STRING    //added on 2019-08-29 by Richard Gong
     ;
 
 creator

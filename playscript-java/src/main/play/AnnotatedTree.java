@@ -3,6 +3,7 @@ package play;
 import java.util.*;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 
@@ -32,26 +33,54 @@ public class AnnotatedTree {
     // 命名空间
     NameSpace nameSpace = null;  //全局命名空间
 
-    // class、function等对应的代码的位置，可以是AST节点，后面可以是IR
-    //protected Map<Type, ParserRuleContext> type2Node = new HashMap<Type, ParserRuleContext>();
-
-    //函数、类等引用的外部变量
-    protected Map<Scope, List<Variable>> outerReference = new HashMap<Scope, List<Variable>>();
+    //语义分析过程中生成的信息，包括普通信息、警告和错误
     protected List<CompilationLog> logs = new LinkedList<CompilationLog>();
+
+    //在构造函数里,引用的this()。第二个函数是被调用的构造函数
+    protected Map<Function, Function> thisConstructorRef = new HashMap<>();
+
+    //在构造函数里,引用的super()。第二个函数是被调用的构造函数
+    protected Map<Function, Function> superConstructorRef = new HashMap<>();
+
 
     protected AnnotatedTree() {
 
     }
 
-    protected void log(String message, ParserRuleContext ctx) {
+    /**
+     * 记录编译错误和警告
+     * @param message
+     * @param type  信息类型，ComplilationLog中的INFO、WARNING和ERROR
+     * @param ctx
+     */
+    protected void log(String message,int type, ParserRuleContext ctx) {
         CompilationLog log = new CompilationLog();
         log.ctx = ctx;
         log.message = message;
         log.line = ctx.getStart().getLine();
         log.positionInLine = ctx.getStart().getStartIndex();
-        log.type = CompilationLog.ERROR;
+        log.type = type;
+
+        logs.add(log);
 
         System.out.println(log);
+    }
+
+    public void log(String message, ParserRuleContext ctx) {
+        this.log(message, CompilationLog.ERROR, ctx);
+    }
+
+    /**
+     * 是否有编译错误
+     * @return
+     */
+    protected boolean hasCompilationError(){
+        for (CompilationLog log : logs){
+            if (log.type == CompilationLog.ERROR){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -116,11 +145,28 @@ public class AnnotatedTree {
     }
 
     /**
-     * 逐级查找函数（或方法）。仅通过名字查找。如果有重名的，返回第一个就算了。//TODO 未来应该报警。
+     * 查找函数型变量，逐级查找。
      * @param scope
-     * @param name
+     * @param idName
+     * @param paramTypes
      * @return
      */
+    protected Variable lookupFunctionVariable(Scope scope, String idName, List<Type> paramTypes) {
+        Variable rtn = scope.getFunctionVariable(idName, paramTypes);
+
+        if (rtn == null && scope.enclosingScope != null) {
+            rtn = lookupFunctionVariable(scope.enclosingScope, idName, paramTypes);
+        }
+        return rtn;
+    }
+
+
+        /**
+         * 逐级查找函数（或方法）。仅通过名字查找。如果有重名的，返回第一个就算了。//TODO 未来应该报警。
+         * @param scope
+         * @param name
+         * @return
+         */
     protected Function lookupFunction(Scope scope, String name){
         Function rtn = null;
         if (scope instanceof Class){
@@ -179,6 +225,35 @@ public class AnnotatedTree {
         return rtn;
     }
 
+    /**
+     * 包含某节点的函数
+     * @param ctx
+     * @return
+     */
+    public Function enclosingFunctionOfNode(RuleContext ctx){
+        if (ctx.parent instanceof PlayScriptParser.FunctionDeclarationContext){
+            return (Function) node2Scope.get(ctx.parent);
+        }
+        else if (ctx.parent == null){
+            return null;
+        }
+        else return enclosingFunctionOfNode(ctx.parent);
+    }
+
+    /**
+     * 包含某节点的类
+     * @param ctx
+     * @return
+     */
+    public Class enclosingClassOfNode(RuleContext ctx){
+        if (ctx.parent instanceof PlayScriptParser.ClassDeclarationContext){
+            return (Class) node2Scope.get(ctx.parent);
+        }
+        else if (ctx.parent == null){
+            return null;
+        }
+        else return enclosingClassOfNode(ctx.parent);
+    }
 
     /**
      * 输出本Scope中的内容，包括每个变量的名称、类型。
@@ -201,7 +276,6 @@ public class AnnotatedTree {
             }
         }
     }
-
 
 
 }

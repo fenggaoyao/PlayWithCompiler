@@ -1,5 +1,5 @@
 /**
- * Clojure.play
+ * closure.play
  * 测试闭包特性
  * 作者：宫文学
  */
@@ -19,6 +19,11 @@ function int() fun1(){
 }
 
 function int() fun2 = fun1();  
+for (int i = 0; i< 3; i++){
+    println("b = " + fun2() + ", a = "+a);
+}
 
-fun2();
-fun2();
+function int() fun3 = fun1();  
+for (int i = 0; i< 3; i++){
+    println("b = " + fun3() + ", a = "+a);
+}

@@ -1,12 +1,12 @@
 # Play With Complier
-本项目是极客时间的《编译原理之美》课程的示例代码。
+本项目是极客时间的[《编译原理之美》](https://time.geekbang.org/column/intro/219)课程的示例代码。
 
 课程Web网址：https://time.geekbang.org/column/intro/219
 
 或者下载“极客时间”APP，查找《编译原理之美》课程。
 
 ## 目录内容
-### lab
+### [lab](lab)
 课程实验和资料。
 * lab/01 ：第1讲的资料，包含一个pdf文档，是第一课中提到的自动生成parser的工具。
 * lab/craft : 第2-5讲的资料。手工实现的简单的词法分析器、语法分析器、计算器、脚本解释器。
@@ -24,10 +24,19 @@
   + ASTEvaluator.java 实现了visitor模式的一个类，对AST遍历，实现表达式求值。
   + PlayScript.java 一个简单的测试程序
   + 其他文件：都是由Antlr解析规则文件后生成的  
+* lab/16-18 : 第16-18讲，算法篇的示例代码
+  + [Regex.java](lab/16-18/src/main/java/play/parser/Regex.java) : 正则表达式工具，包括从正则表达式生成NFA，从NFA生成DFA，以及基于NFA和DFA做字符串匹配。
+  + [Lexer.java](lab/16-18/src/main/java/play/parser/Lexer.java) : 基于正则表达式自动做词法分析。
+  + [GrammarNode.java](lab/16-18/src/main/java/play/parser/GrammarNode.java) : 文法。能像EBNF那样表示词法和语法。
+  + [State.java](lab/16-18/src/main/java/play/parser/State.java) : 有限自动机节点。
+  + [DFAState.java](lab/16-18/src/main/java/play/parser/DFAState.java) : DFA的节点。
   
-### playscript-java
+### [playscript-java](playscript-java)
 这是一个java版本的脚本语言的参考实现，课程第7讲之后的示例以该项目为核心。   
 详细介绍，参见[playscript-java的说明](playscript-java/README.md)。
+
+### 环境配置
+* [antlr的安装、配置和使用](antlr_install.md)
 
 ### 注意
 随着课程进度，会不断更新资料内容和本文档的内容。   
